@@ -13,7 +13,7 @@ class Homestead
     # Configure The Box
     config.vm.define settings['name'] ||= 'homestead-7'
     config.vm.box = settings['box'] ||= 'laravel/homestead'
-    config.vm.box_version = settings['version'] ||= '>= 6.0.0'
+    config.vm.box_version = settings['version'] ||= '>= 6.3.0'
     config.vm.hostname = settings['hostname'] ||= 'homestead'
 
     # Configure A Private Network IP
@@ -58,6 +58,18 @@ class Homestead
         if settings.has_key?('gui') && settings['gui']
           v.gui = true
         end
+      end
+    end
+
+    # Configure A Few Hyper-V Settings
+    config.vm.provider "hyperv" do |h, override|
+      h.vmname = settings['names'] ||= 'homestead-7'
+      h.cpus = settings['cpus'] ||= 1
+      h.memory = settings['memory'] ||= 2048
+      h.differencing_disk = true
+
+      if Vagrant.has_plugin?('vagrant-hostmanager')
+        override.hostmanager.ignore_private_ip = true
       end
     end
 
@@ -152,6 +164,10 @@ class Homestead
       settings['folders'].each do |folder|
         if File.exist? File.expand_path(folder['map'])
           mount_opts = []
+
+          if ENV['VAGRANT_DEFAULT_PROVIDER'] == 'hyperv'
+            folder['type'] = 'smb'
+          end
 
           if folder['type'] == 'nfs'
             mount_opts = folder['mount_options'] ? folder['mount_options'] : ['actimeo=1', 'nolock']
@@ -286,13 +302,18 @@ class Homestead
         end
 
         config.vm.provision 'shell' do |s|
+            s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.3/fpm/pool.d/www.conf"
+            s.args = [var['key'], var['value']]
+        end
+
+        config.vm.provision 'shell' do |s|
           s.inline = "echo \"\n# Set Homestead Environment Variable\nexport $1=$2\" >> /home/vagrant/.profile"
           s.args = [var['key'], var['value']]
         end
       end
 
       config.vm.provision 'shell' do |s|
-        s.inline = 'service php5.6-fpm restart; service php7.0-fpm restart; service php7.1-fpm restart; service php7.2-fpm restart;'
+        s.inline = 'service php5.6-fpm restart; service php7.0-fpm restart; service php7.1-fpm restart; service php7.2-fpm restart; service php7.3-fpm restart;'
       end
     end
 
@@ -303,7 +324,7 @@ class Homestead
 
     config.vm.provision 'shell' do |s|
       s.name = 'Restarting Nginx'
-      s.inline = 'sudo service nginx restart; sudo service php5.6-fpm restart; sudo service php7.0-fpm restart; sudo service php7.1-fpm restart; sudo service php7.2-fpm restart'
+      s.inline = 'sudo service nginx restart; sudo service php5.6-fpm restart; sudo service php7.0-fpm restart; sudo service php7.1-fpm restart; sudo service php7.2-fpm restart; sudo service php7.3-fpm restart;'
     end
 
     # Install CouchDB If Necessary
