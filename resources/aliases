@@ -26,6 +26,21 @@ function dusk() {
     php artisan dusk "$@"
 }
 
+function php56() {
+    sudo rm /usr/bin/php
+    sudo ln -s /usr/bin/php5.6 /usr/bin/php
+}
+
+function php70() {
+    sudo rm /usr/bin/php
+    sudo ln -s /usr/bin/php7.0 /usr/bin/php
+}
+
+function php71() {
+    sudo rm /usr/bin/php
+    sudo ln -s /usr/bin/php7.1 /usr/bin/php
+}
+
 function serve-apache() {
     if [[ "$1" && "$2" ]]
     then
@@ -134,7 +149,7 @@ function serve-pimcore() {
     then
         sudo bash /vagrant/scripts/create-certificate.sh "$1"
         sudo dos2unix /vagrant/scripts/serve-pimcore.sh
-        sudo bash /vagrant/scripts/serve-pimcore.sh "$1" "$2" 80
+        sudo bash /vagrant/scripts/serve-pimcore.sh "$1" "$2" 80 443 "${3:-7.1}"
     else
         echo "Error: missing required parameters."
         echo "Usage: "
