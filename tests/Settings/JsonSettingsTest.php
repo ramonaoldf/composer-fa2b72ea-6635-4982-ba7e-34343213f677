@@ -32,7 +32,7 @@ class JsonSettingsTest extends TestCase
     /** @test */
     public function it_can_be_created_from_a_filename()
     {
-        $settings = JsonSettings::fromFile(__DIR__.'/../../src/stubs/Homestead.json');
+        $settings = JsonSettings::fromFile(__DIR__.'/../../resources/Homestead.json');
 
         $attributes = $settings->toArray();
         $this->assertEquals('192.168.10.10', $attributes['ip']);
@@ -139,17 +139,23 @@ class JsonSettingsTest extends TestCase
     {
         $settings = new JsonSettings([
             'sites' => [
-                'map' => 'homestead.app',
-                'to' => '/home/vagrant/Code/Laravel/public',
+                [
+                    'map' => 'homestead.app',
+                    'to' => '/home/vagrant/Code/Laravel/public',
+                    'type' => 'laravel',
+                    'schedule' => true,
+                ],
             ],
         ]);
 
-        $settings->configureSites('test');
+        $settings->configureSites('test.com', 'test-com');
 
         $attributes = $settings->toArray();
         $this->assertEquals([
-            'map' => 'test.app',
-            'to' => '/home/vagrant/Code/test/public',
+            'map' => 'test.com.app',
+            'to' => '/home/vagrant/Code/test-com/public',
+            'type' => 'laravel',
+            'schedule' => true,
         ], $attributes['sites'][0]);
     }
 
