@@ -3,6 +3,9 @@ class Homestead
     # Set The VM Provider
     ENV['VAGRANT_DEFAULT_PROVIDER'] = settings["provider"] ||= "virtualbox"
 
+    # Prevent TTY Errors
+    config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
     # Configure The Box
     config.vm.box = "laravel/homestead"
     config.vm.hostname = "homestead"
@@ -64,18 +67,19 @@ class Homestead
 
     # Register All Of The Configured Shared Folders
     settings["folders"].each do |folder|
-      config.vm.synced_folder folder["map"], folder["to"], type: folder["type"] ||= nil
+      mount_opts = folder["type"] == "nfs" ? ['actimeo=1'] : []
+      config.vm.synced_folder folder["map"], folder["to"], type: folder["type"] ||= nil, mount_options: mount_opts
     end
 
     # Install All The Configured Nginx Sites
     settings["sites"].each do |site|
       config.vm.provision "shell" do |s|
           if (site.has_key?("hhvm") && site["hhvm"])
-            s.inline = "bash /vagrant/scripts/serve-hhvm.sh $1 \"$2\" $3"
-            s.args = [site["map"], site["to"], site["port"] ||= "80"]
+            s.inline = "bash /vagrant/scripts/serve-hhvm.sh $1 \"$2\" $3 $4"
+            s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443"]
           else
-            s.inline = "bash /vagrant/scripts/serve.sh $1 \"$2\" $3"
-            s.args = [site["map"], site["to"], site["port"] ||= "80"]
+            s.inline = "bash /vagrant/scripts/serve.sh $1 \"$2\" $3 $4"
+            s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443"]
           end
       end
     end
@@ -121,7 +125,12 @@ class Homestead
     if settings.has_key?("blackfire")
       config.vm.provision "shell" do |s|
         s.path = "./scripts/blackfire.sh"
-        s.args = [settings["blackfire"][0]["id"], settings["blackfire"][0]["token"]]
+        s.args = [
+          settings["blackfire"][0]["id"],
+          settings["blackfire"][0]["token"],
+          settings["blackfire"][0]["client-id"],
+          settings["blackfire"][0]["client-token"]
+        ]
       end
     end
   end
