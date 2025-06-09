@@ -3,7 +3,7 @@
 block="server {
     listen 80;
     server_name $1;
-    root $2;
+    root \"$2\";
 
     index index.html index.htm index.php;
 
@@ -19,15 +19,13 @@ block="server {
     access_log off;
     error_log  /var/log/nginx/$1-error.log error;
 
-    error_page 404 /index.php;
-
     sendfile off;
 
     location ~ \.php$ {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME \$document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
         include fastcgi_params;
     }
 
