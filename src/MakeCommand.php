@@ -98,7 +98,7 @@ class MakeCommand extends Command
     protected function configurePaths()
     {
         $yaml = str_replace(
-            "- map: ~/Code", "- map: \"".$this->basePath."\"", $this->getHomesteadFile()
+            "- map: ~/Code", "- map: \"".str_replace('\\', '/', $this->basePath)."\"", $this->getHomesteadFile()
         );
 
         $yaml = str_replace(
@@ -129,7 +129,7 @@ class MakeCommand extends Command
     }
 
     /**
-     * Set the virtual machine's hostname setting in the Homstead.yaml file.
+     * Set the virtual machine's hostname setting in the Homestead.yaml file.
      *
      * @param  string  $hostname
      * @return void
