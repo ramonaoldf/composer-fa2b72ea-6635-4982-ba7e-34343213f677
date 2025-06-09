@@ -11,14 +11,14 @@ class Homestead
 
     # Configure The Box
     config.vm.box = "laravel/homestead"
-    config.vm.hostname = "homestead"
+    config.vm.hostname = settings["hostname"] ||= "homestead"
 
     # Configure A Private Network IP
     config.vm.network :private_network, ip: settings["ip"] ||= "192.168.10.10"
 
     # Configure A Few VirtualBox Settings
     config.vm.provider "virtualbox" do |vb|
-      vb.name = 'homestead'
+      vb.name = settings["name"] ||= "homestead"
       vb.customize ["modifyvm", :id, "--memory", settings["memory"] ||= "2048"]
       vb.customize ["modifyvm", :id, "--cpus", settings["cpus"] ||= "1"]
       vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
@@ -110,16 +110,18 @@ class Homestead
     end
 
     # Configure All Of The Configured Databases
-    settings["databases"].each do |db|
-      config.vm.provision "shell" do |s|
-        s.path = scriptDir + "/create-mysql.sh"
-        s.args = [db]
-      end
+    if settings.has_key?("databases")
+        settings["databases"].each do |db|
+          config.vm.provision "shell" do |s|
+            s.path = scriptDir + "/create-mysql.sh"
+            s.args = [db]
+          end
 
-      config.vm.provision "shell" do |s|
-        s.path = scriptDir + "/create-postgres.sh"
-        s.args = [db]
-      end
+          config.vm.provision "shell" do |s|
+            s.path = scriptDir + "/create-postgres.sh"
+            s.args = [db]
+          end
+        end
     end
 
     # Configure All Of The Server Environment Variables
