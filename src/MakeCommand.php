@@ -59,10 +59,20 @@ class MakeCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        copy(__DIR__.'/stubs/LocalizedVagrantfile', $this->basePath.'/Vagrantfile');
+        if (! file_exists($this->basePath.'/Vagrantfile')) {
+            copy(__DIR__.'/stubs/LocalizedVagrantfile', $this->basePath.'/Vagrantfile');
+        }
 
         if (! file_exists($this->basePath.'/Homestead.yaml')) {
             copy(__DIR__.'/stubs/Homestead.yaml', $this->basePath.'/Homestead.yaml');
+
+            if ($input->getOption('name')) {
+                $this->updateName($input->getOption('name'));
+            }
+
+            if ($input->getOption('hostname')) {
+                $this->updateHostName($input->getOption('hostname'));
+            }
         }
 
         if ($input->getOption('after')) {
@@ -75,14 +85,6 @@ class MakeCommand extends Command
             if (! file_exists($this->basePath.'/aliases')) {
                 copy(__DIR__.'/stubs/aliases', $this->basePath.'/aliases');
             }
-        }
-
-        if ($input->getOption('name')) {
-            $this->updateName($input->getOption('name'));
-        }
-
-        if ($input->getOption('hostname')) {
-            $this->updateHostName($input->getOption('hostname'));
         }
 
         $this->configurePaths();
