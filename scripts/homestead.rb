@@ -10,11 +10,18 @@ class Homestead
     config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
 
     # Configure The Box
-    config.vm.box = "laravel/homestead"
+    config.vm.box = settings["box"] ||= "laravel/homestead"
     config.vm.hostname = settings["hostname"] ||= "homestead"
 
     # Configure A Private Network IP
     config.vm.network :private_network, ip: settings["ip"] ||= "192.168.10.10"
+
+    # Configure Additional Networks
+    if settings.has_key?("networks")
+      settings["networks"].each do |network|
+        config.vm.network network["type"], ip: network["ip"], bridge: network["bridge"] ||= nil
+      end
+    end
 
     # Configure A Few VirtualBox Settings
     config.vm.provider "virtualbox" do |vb|
@@ -34,6 +41,14 @@ class Homestead
         v.vmx["numvcpus"] = settings["cpus"] ||= 1
         v.vmx["guestOS"] = "ubuntu-64"
       end
+    end
+
+    # Configure A Few Parallels Settings
+    config.vm.provider "parallels" do |v|
+      v.update_guest_tools = true
+      v.optimize_power_consumption = false
+      v.memory = settings["memory"] ||= 2048
+      v.cpus = settings["cpus"] ||= 1
     end
 
     # Standardize Ports Naming Schema
