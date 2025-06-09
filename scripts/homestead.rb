@@ -36,16 +36,36 @@ class Homestead
       end
     end
 
-    # Configure Port Forwarding To The Box
-    config.vm.network "forwarded_port", guest: 80, host: 8000
-    config.vm.network "forwarded_port", guest: 443, host: 44300
-    config.vm.network "forwarded_port", guest: 3306, host: 33060
-    config.vm.network "forwarded_port", guest: 5432, host: 54320
+    # Standardize Ports Naming Schema
+    if (settings.has_key?("ports"))
+      settings["ports"].each do |port|
+        port["guest"] ||= port["to"]
+        port["host"] ||= port["send"]
+        port["protocol"] ||= "tcp"
+      end
+    else
+      settings["ports"] = []
+    end
+
+    # Default Port Forwarding
+    default_ports = {
+      80   => 8000,
+      443  => 44300,
+      3306 => 33060,
+      5432 => 54320
+    }
+
+    # Use Default Port Forwarding Unless Overridden
+    default_ports.each do |guest, host|
+      unless settings["ports"].any? { |mapping| mapping["guest"] == guest }
+        config.vm.network "forwarded_port", guest: guest, host: host
+      end
+    end
 
     # Add Custom Ports From Configuration
     if settings.has_key?("ports")
       settings["ports"].each do |port|
-        config.vm.network "forwarded_port", guest: port["guest"] || port["to"], host: port["host"] || port["send"], protocol: port["protocol"] ||= "tcp"
+        config.vm.network "forwarded_port", guest: port["guest"], host: port["host"], protocol: port["protocol"]
       end
     end
 
