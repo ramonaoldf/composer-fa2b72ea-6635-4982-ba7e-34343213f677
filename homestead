@@ -12,10 +12,17 @@ else
 
 function homestead_path()
 {
-	return $_SERVER['HOME'].'/.homestead';
+	if (isset($_SERVER['HOME']))
+	{
+		return $_SERVER['HOME'].'/.homestead';
+	}
+	else
+	{
+		return $_SERVER['HOMEDRIVE'].$_SERVER['HOMEPATH'].DIRECTORY_SEPARATOR.'.homestead';
+	}
 }
 
-$app = new Symfony\Component\Console\Application('Laravel Homestead', '2.0.0');
+$app = new Symfony\Component\Console\Application('Laravel Homestead', '2.0.5');
 
 $app->add(new Laravel\Homestead\DestroyCommand);
 $app->add(new Laravel\Homestead\EditCommand);
