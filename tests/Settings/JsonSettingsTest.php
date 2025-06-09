@@ -2,21 +2,20 @@
 
 namespace Tests\Settings;
 
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Laravel\Homestead\Settings\JsonSettings;
 use PHPUnit\Framework\TestCase;
 use Tests\Traits\GeneratesTestDirectory;
 
 class JsonSettingsTest extends TestCase
 {
-    use ArraySubsetAsserts, GeneratesTestDirectory;
+    use GeneratesTestDirectory;
 
     /** @test */
     public function it_can_be_created_from_a_filename()
     {
         $settings = JsonSettings::fromFile(__DIR__.'/../../resources/Homestead.json');
 
-        self::assertArraySubset([
+        $this->assertArraySubset([
             'ip' => '192.168.10.10',
             'memory' => '2048',
             'cpus' => '2',
@@ -37,7 +36,7 @@ class JsonSettingsTest extends TestCase
 
         $this->assertFileExists($filename);
         $attributes = json_decode(file_get_contents($filename), true);
-        self::assertArraySubset([
+        $this->assertArraySubset([
             'ip' => '192.168.10.10',
             'memory' => '2048',
             'cpus' => '1',
@@ -59,7 +58,7 @@ class JsonSettingsTest extends TestCase
             'cpus' => 2,
         ]);
 
-        self::assertArraySubset([
+        $this->assertArraySubset([
             'ip' => '127.0.0.1',
             'memory' => '4096',
             'cpus' => '2',
@@ -81,7 +80,7 @@ class JsonSettingsTest extends TestCase
             'cpus' => null,
         ]);
 
-        self::assertArraySubset([
+        $this->assertArraySubset([
             'ip' => '192.168.10.10',
             'memory' => '2048',
             'cpus' => '1',
