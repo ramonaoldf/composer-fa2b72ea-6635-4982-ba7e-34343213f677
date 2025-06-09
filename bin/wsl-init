@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-######################################################################
-# You *probably* don't want this file.                               #
-# Find and replace `vagrant` /w your WSL username.                   #
-######################################################################
+##################################
+# Usage:                         #
+# sudo ./bin/homestead/wsl-init  #
+##################################
 export DEBIAN_FRONTEND=noninteractive
-export WSL_USERNAME=vagrant
-export WSL_USER_GROUP=vagrant
+
+echo "What is your WSL user name?"
+read WSL_USER_NAME
+
+echo "What is your WSL user group? (Same as username if you're unsure)"
+read WSL_USER_GROUP
 
 # Update Package List
 apt-get update
@@ -14,7 +18,7 @@ apt-get update
 apt-get upgrade -y
 
 # Force Locale
-echo "LC_ALL=en_US.UTF-8" >> /etc/default/locale
+echo "LC_ALL=en_US.UTF-8" >> /etc/defaulcdt/locale
 locale-gen en_US.UTF-8
 
 apt-get install -y software-properties-common curl
@@ -24,11 +28,11 @@ apt-add-repository ppa:ondrej/php -y
 add-apt-repository ppa:chris-lea/redis-server -y
 # NodeJS
 curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-## PostgreSQL
-#tee /etc/apt/sources.list.d/pgdg.list <<END
-#deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main
-#END
-#wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+# PostgreSQL
+tee /etc/apt/sources.list.d/pgdg.list <<END
+deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main
+END
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
 ## Install RabbitMQ signing key
 #curl -fsSL https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc | sudo apt-key add -
@@ -47,9 +51,8 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 apt-get update
 
 # Install Some Basic Packages
-apt-get install -y build-essential dos2unix gcc git git-lfs libmcrypt4 libpcre3-dev libpng-dev chrony unzip make \
-python3-pip re2c supervisor unattended-upgrades whois vim libnotify-bin pv cifs-utils mcrypt bash-completion zsh \
-graphviz avahi-daemon tshark imagemagick
+apt-get install -y build-essential dos2unix gcc git git-lfs libmcrypt4 libpcre3-dev libpng-dev unzip make \
+python3-pip re2c supervisor unattended-upgrades whois vim libnotify-bin pv mcrypt bash-completion zsh imagemagick
 
 ## Set My Timezone
 #ln -sf /usr/share/zoneinfo/UTC /etc/localtime
@@ -57,6 +60,13 @@ graphviz avahi-daemon tshark imagemagick
 # Install Generic PHP packages
 apt-get install -y --allow-change-held-packages \
 php-imagick php-memcached php-redis php-xdebug php-dev
+
+# PHP 8.0
+apt-get install -y --allow-change-held-packages \
+php8.0 php8.0-bcmath php8.0-bz2 php8.0-cgi php8.0-cli php8.0-common php8.0-curl php8.0-dba php8.0-dev \
+php8.0-enchant php8.0-fpm php8.0-gd php8.0-gmp php8.0-imap php8.0-interbase php8.0-intl php8.0-ldap \
+php8.0-mbstring php8.0-mysql php8.0-odbc php8.0-opcache php8.0-pgsql php8.0-phpdbg php8.0-pspell php8.0-readline \
+php8.0-snmp php8.0-soap php8.0-sqlite3 php8.0-sybase php8.0-tidy php8.0-xml php8.0-xsl php8.0-zip
 
 # PHP 7.4
 apt-get install -y --allow-change-held-packages \
@@ -108,12 +118,17 @@ update-alternatives --set php /usr/bin/php7.4
 update-alternatives --set php-config /usr/bin/php-config7.4
 update-alternatives --set phpize /usr/bin/phpize7.4
 
+# Fixed php fpm bind listening socket - no such file issue.
+mkdir -p /run/php
+touch /run/php/php7.4-fpm.sock
+touch /run/php/php7.3-fpm.sock
+
 # Install Composer
 curl -sS https://getcomposer.org/installer | php
 mv composer.phar /usr/local/bin/composer
 
 ## Install Laravel Envoy, Installer, and prestissimo for parallel downloads
-#sudo su $WSL_USERNAME <<'EOF'
+#sudo su $WSL_USER_NAME <<'EOF'
 #/usr/local/bin/composer global require hirak/prestissimo
 #/usr/local/bin/composer global require "laravel/envoy=^2.0"
 #/usr/local/bin/composer global require "laravel/installer=^3.0.1"
@@ -123,16 +138,21 @@ mv composer.phar /usr/local/bin/composer
 #EOF
 
 ## Set Some PHP CLI Settings
-#sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.4/cli/php.ini
-#sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.4/cli/php.ini
-#sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.4/cli/php.ini
-#sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.4/cli/php.ini
-#
-#sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.3/cli/php.ini
-#sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.3/cli/php.ini
-#sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.3/cli/php.ini
-#sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.3/cli/php.ini
-#
+sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/8.0/cli/php.ini
+sed -i "s/display_errors = .*/display_errors = On/" /etc/php/8.0/cli/php.ini
+sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/8.0/cli/php.ini
+sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/8.0/cli/php.ini
+
+sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.4/cli/php.ini
+sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.4/cli/php.ini
+sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.4/cli/php.ini
+sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.4/cli/php.ini
+
+sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.3/cli/php.ini
+sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.3/cli/php.ini
+sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.3/cli/php.ini
+sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/7.3/cli/php.ini
+
 #sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.2/cli/php.ini
 #sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.2/cli/php.ini
 #sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/7.2/cli/php.ini
@@ -152,39 +172,40 @@ mv composer.phar /usr/local/bin/composer
 #sed -i "s/display_errors = .*/display_errors = On/" /etc/php/5.6/cli/php.ini
 #sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/5.6/cli/php.ini
 #sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/5.6/cli/php.ini
-#
-## Install Apache
-#apt-get install -y apache2 libapache2-mod-fcgid
-#sed -i "s/www-data/$WSL_USERNAME/" /etc/apache2/envvars
-#
-## Enable FPM
+
+# Install Apache
+apt-get install -y apache2 libapache2-mod-fcgid
+sed -i "s/www-data/$WSL_USER_NAME/" /etc/apache2/envvars
+
+# Enable FPM
 #a2enconf php5.6-fpm
 #a2enconf php7.0-fpm
 #a2enconf php7.1-fpm
 #a2enconf php7.2-fpm
-#a2enconf php7.3-fpm
-#a2enconf php7.4-fpm
-#
-## Assume user wants mode_rewrite support
-#sudo a2enmod rewrite
-#
-## Turn on HTTPS support
-#sudo a2enmod ssl
-#
-## Turn on proxy & fcgi
-#sudo a2enmod proxy proxy_fcgi
-#
-## Turn on headers support
-#sudo a2enmod headers actions alias
-#
-## Add Mutex to config to prevent auto restart issues
-#if [ -z "$(grep '^Mutex posixsem$' /etc/apache2/apache2.conf)" ]
-#then
-#    echo 'Mutex posixsem' | sudo tee -a /etc/apache2/apache2.conf
-#fi
-#
-#a2dissite 000-default
-#systemctl disable apache2
+a2enconf php7.3-fpm
+a2enconf php7.4-fpm
+a2enconf php8.0-fpm
+
+# Assume user wants mode_rewrite support
+sudo a2enmod rewrite
+
+# Turn on HTTPS support
+sudo a2enmod ssl
+
+# Turn on proxy & fcgi
+sudo a2enmod proxy proxy_fcgi
+
+# Turn on headers support
+sudo a2enmod headers actions alias
+
+# Add Mutex to config to prevent auto restart issues
+if [ -z "$(grep '^Mutex posixsem$' /etc/apache2/apache2.conf)" ]
+then
+    echo 'Mutex posixsem' | sudo tee -a /etc/apache2/apache2.conf
+fi
+
+a2dissite 000-default
+systemctl disable apache2
 
 # Install Nginx
 apt-get install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages nginx
@@ -193,12 +214,18 @@ rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
 
 # Create a configuration file for Nginx overrides.
-mkdir -p /home/$WSL_USERNAME/.config/nginx
-chown -R $WSL_USERNAME:$WSL_USER_GROUP /home/$WSL_USERNAME
-touch /home/$WSL_USERNAME/.config/nginx/nginx.conf
-ln -sf /home/$WSL_USERNAME/.config/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf
+mkdir -p /home/$WSL_USER_NAME/.config/nginx
+chown -R $WSL_USER_NAME:$WSL_USER_GROUP /home/$WSL_USER_NAME
+touch /home/$WSL_USER_NAME/.config/nginx/nginx.conf
+ln -sf /home/$WSL_USER_NAME/.config/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf
 
 # Setup Some PHP-FPM Options
+echo "xdebug.remote_enable = 1" >> /etc/php/8.0/mods-available/xdebug.ini
+echo "xdebug.remote_connect_back = 1" >> /etc/php/8.0/mods-available/xdebug.ini
+echo "xdebug.remote_port = 9000" >> /etc/php/8.0/mods-available/xdebug.ini
+echo "xdebug.max_nesting_level = 512" >> /etc/php/8.0/mods-available/xdebug.ini
+echo "opcache.revalidate_freq = 0" >> /etc/php/8.0/mods-available/opcache.ini
+
 echo "xdebug.remote_enable = 1" >> /etc/php/7.4/mods-available/xdebug.ini
 echo "xdebug.remote_connect_back = 1" >> /etc/php/7.4/mods-available/xdebug.ini
 echo "xdebug.remote_port = 9000" >> /etc/php/7.4/mods-available/xdebug.ini
@@ -234,6 +261,20 @@ echo "opcache.revalidate_freq = 0" >> /etc/php/7.3/mods-available/opcache.ini
 #echo "xdebug.remote_port = 9000" >> /etc/php/5.6/mods-available/xdebug.ini
 #echo "xdebug.max_nesting_level = 512" >> /etc/php/5.6/mods-available/xdebug.ini
 #echo "opcache.revalidate_freq = 0" >> /etc/php/5.6/mods-available/opcache.ini
+
+sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/8.0/fpm/php.ini
+sed -i "s/display_errors = .*/display_errors = On/" /etc/php/8.0/fpm/php.ini
+sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/8.0/fpm/php.ini
+sed -i "s/memory_limit = .*/memory_limit = 512M/" /etc/php/8.0/fpm/php.ini
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = 100M/" /etc/php/8.0/fpm/php.ini
+sed -i "s/post_max_size = .*/post_max_size = 100M/" /etc/php/8.0/fpm/php.ini
+sed -i "s/;date.timezone.*/date.timezone = UTC/" /etc/php/8.0/fpm/php.ini
+
+printf "[openssl]\n" | tee -a /etc/php/8.0/fpm/php.ini
+printf "openssl.cainfo = /etc/ssl/certs/ca-certificates.crt\n" | tee -a /etc/php/8.0/fpm/php.ini
+
+printf "[curl]\n" | tee -a /etc/php/8.0/fpm/php.ini
+printf "curl.cainfo = /etc/ssl/certs/ca-certificates.crt\n" | tee -a /etc/php/8.0/fpm/php.ini
 
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.4/fpm/php.ini
 sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.4/fpm/php.ini
@@ -320,55 +361,63 @@ printf "curl.cainfo = /etc/ssl/certs/ca-certificates.crt\n" | tee -a /etc/php/7.
 #printf "curl.cainfo = /etc/ssl/certs/ca-certificates.crt\n" | tee -a /etc/php/5.6/fpm/php.ini
 #
 ## Disable XDebug On The CLI
-#sudo phpdismod -s cli xdebug
+sudo phpdismod -s cli xdebug
 
 # Set The Nginx & PHP-FPM User
-sed -i "s/user www-data;/user $WSL_USERNAME;/" /etc/nginx/nginx.conf
+sed -i "s/user = www-data/user = $WSL_USER_NAME/" /etc/php/8.0/fpm/pool.d/www.conf
+sed -i "s/group = www-data/group = $WSL_USER_NAME/" /etc/php/8.0/fpm/pool.d/www.conf
+
+sed -i "s/listen\.owner.*/listen.owner = $WSL_USER_NAME/" /etc/php/8.0/fpm/pool.d/www.conf
+sed -i "s/listen\.group.*/listen.group = $WSL_USER_NAME/" /etc/php/8.0/fpm/pool.d/www.conf
+sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/8.0/fpm/pool.d/www.conf
+
+sed -i "s/user www-data;/user $WSL_USER_NAME;/" /etc/nginx/nginx.conf
 sed -i "s/# server_names_hash_bucket_size.*/server_names_hash_bucket_size 64;/" /etc/nginx/nginx.conf
 
-sed -i "s/user = www-data/user = $WSL_USERNAME/" /etc/php/7.4/fpm/pool.d/www.conf
+sed -i "s/user = www-data/user = $WSL_USER_NAME/" /etc/php/7.4/fpm/pool.d/www.conf
 sed -i "s/group = www-data/group = $WSL_USER_GROUP/" /etc/php/7.4/fpm/pool.d/www.conf
 
-sed -i "s/listen\.owner.*/listen.owner = $WSL_USERNAME/" /etc/php/7.4/fpm/pool.d/www.conf
+sed -i "s/listen\.owner.*/listen.owner = $WSL_USER_NAME/" /etc/php/7.4/fpm/pool.d/www.conf
 sed -i "s/listen\.group.*/listen.group = $WSL_USER_GROUP/" /etc/php/7.4/fpm/pool.d/www.conf
 sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.4/fpm/pool.d/www.conf
 
-sed -i "s/user = www-data/user = $WSL_USERNAME/" /etc/php/7.3/fpm/pool.d/www.conf
+sed -i "s/user = www-data/user = $WSL_USER_NAME/" /etc/php/7.3/fpm/pool.d/www.conf
 sed -i "s/group = www-data/group = $WSL_USER_GROUP/" /etc/php/7.3/fpm/pool.d/www.conf
 
-sed -i "s/listen\.owner.*/listen.owner = $WSL_USERNAME/" /etc/php/7.3/fpm/pool.d/www.conf
+sed -i "s/listen\.owner.*/listen.owner = $WSL_USER_NAME/" /etc/php/7.3/fpm/pool.d/www.conf
 sed -i "s/listen\.group.*/listen.group = $WSL_USER_GROUP/" /etc/php/7.3/fpm/pool.d/www.conf
 sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.3/fpm/pool.d/www.conf
 #
-#sed -i "s/user = www-data/user = $WSL_USERNAME/" /etc/php/7.2/fpm/pool.d/www.conf
+#sed -i "s/user = www-data/user = $WSL_USER_NAME/" /etc/php/7.2/fpm/pool.d/www.conf
 #sed -i "s/group = www-data/group = $WSL_USER_GROUP/" /etc/php/7.2/fpm/pool.d/www.conf
 #
-#sed -i "s/listen\.owner.*/listen.owner = $WSL_USERNAME/" /etc/php/7.2/fpm/pool.d/www.conf
+#sed -i "s/listen\.owner.*/listen.owner = $WSL_USER_NAME/" /etc/php/7.2/fpm/pool.d/www.conf
 #sed -i "s/listen\.group.*/listen.group = $WSL_USER_GROUP/" /etc/php/7.2/fpm/pool.d/www.conf
 #sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.2/fpm/pool.d/www.conf
 #
-#sed -i "s/user = www-data/user = $WSL_USERNAME/" /etc/php/7.1/fpm/pool.d/www.conf
+#sed -i "s/user = www-data/user = $WSL_USER_NAME/" /etc/php/7.1/fpm/pool.d/www.conf
 #sed -i "s/group = www-data/group = $WSL_USER_GROUP/" /etc/php/7.1/fpm/pool.d/www.conf
 #
-#sed -i "s/listen\.owner.*/listen.owner = $WSL_USERNAME/" /etc/php/7.1/fpm/pool.d/www.conf
+#sed -i "s/listen\.owner.*/listen.owner = $WSL_USER_NAME/" /etc/php/7.1/fpm/pool.d/www.conf
 #sed -i "s/listen\.group.*/listen.group = $WSL_USER_GROUP/" /etc/php/7.1/fpm/pool.d/www.conf
 #sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.1/fpm/pool.d/www.conf
 #
-#sed -i "s/user = www-data/user = $WSL_USERNAME/" /etc/php/7.0/fpm/pool.d/www.conf
+#sed -i "s/user = www-data/user = $WSL_USER_NAME/" /etc/php/7.0/fpm/pool.d/www.conf
 #sed -i "s/group = www-data/group = $WSL_USER_GROUP/" /etc/php/7.0/fpm/pool.d/www.conf
 #
-#sed -i "s/listen\.owner.*/listen.owner = $WSL_USERNAME/" /etc/php/7.0/fpm/pool.d/www.conf
+#sed -i "s/listen\.owner.*/listen.owner = $WSL_USER_NAME/" /etc/php/7.0/fpm/pool.d/www.conf
 #sed -i "s/listen\.group.*/listen.group = $WSL_USER_GROUP/" /etc/php/7.0/fpm/pool.d/www.conf
 #sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/7.0/fpm/pool.d/www.conf
 #
-#sed -i "s/user = www-data/user = $WSL_USERNAME/" /etc/php/5.6/fpm/pool.d/www.conf
+#sed -i "s/user = www-data/user = $WSL_USER_NAME/" /etc/php/5.6/fpm/pool.d/www.conf
 #sed -i "s/group = www-data/group = $WSL_USER_GROUP/" /etc/php/5.6/fpm/pool.d/www.conf
 #
-#sed -i "s/listen\.owner.*/listen.owner = $WSL_USERNAME/" /etc/php/5.6/fpm/pool.d/www.conf
+#sed -i "s/listen\.owner.*/listen.owner = $WSL_USER_NAME/" /etc/php/5.6/fpm/pool.d/www.conf
 #sed -i "s/listen\.group.*/listen.group = $WSL_USER_GROUP/" /etc/php/5.6/fpm/pool.d/www.conf
 #sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/5.6/fpm/pool.d/www.conf
 
 service nginx restart
+service php8.0-fpm restart
 service php7.4-fpm restart
 service php7.3-fpm restart
 #service php7.2-fpm restart
@@ -376,9 +425,9 @@ service php7.3-fpm restart
 #service php7.0-fpm restart
 #service php5.6-fpm restart
 
-# Add $WSL_USERNAME User To WWW-Data
-usermod -a -G www-data $WSL_USERNAME
-id $WSL_USERNAME
+# Add $WSL_USER_NAME User To WWW-Data
+usermod -a -G www-data $WSL_USER_NAME
+id $WSL_USER_NAME
 groups $WSL_USER_GROUP
 
 # Install Node
@@ -457,7 +506,7 @@ mysql --user="root" -e "GRANT ALL PRIVILEGES ON *.* TO 'homestead'@'%' WITH GRAN
 mysql --user="root" -e "FLUSH PRIVILEGES;"
 mysql --user="root" -e "CREATE DATABASE homestead character set UTF8mb4 collate utf8mb4_bin;"
 
-sudo tee /home/$WSL_USERNAME/.my.cnf <<EOL
+sudo tee /home/$WSL_USER_NAME/.my.cnf <<EOL
 [mysqld]
 character-set-server=utf8mb4
 collation-server=utf8mb4_bin
@@ -482,9 +531,9 @@ apt-get install -y postgresql-12 postgresql-server-dev-12 postgresql-12-postgis-
 #echo "host    all             all             10.0.2.2/32               md5" | tee -a /etc/postgresql/11/main/pg_hba.conf
 sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgresql/12/main/postgresql.conf
 echo "host    all             all             10.0.2.2/32               md5" | tee -a /etc/postgresql/12/main/pg_hba.conf
+service postgresql restart
 sudo -u postgres psql -c "CREATE ROLE homestead LOGIN PASSWORD 'secret' SUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;"
 sudo -u postgres /usr/bin/createdb --echo --owner=homestead homestead
-service postgresql@12-main restart
 
 # Install Redis, Memcached, & Beanstalk
 apt-get install -y redis-server
@@ -499,21 +548,21 @@ service redis-server start
 wget --quiet -O /usr/local/bin/mailhog https://github.com/mailhog/MailHog/releases/download/v0.2.1/MailHog_linux_amd64
 chmod +x /usr/local/bin/mailhog
 
-#sudo tee /etc/systemd/system/mailhog.service <<EOL
-#[Unit]
-#Description=Mailhog
-#After=network.target
-#
-#[Service]
-#User=$WSL_USERNAME
-#ExecStart=/usr/bin/env /usr/local/bin/mailhog > /dev/null 2>&1 &
-#
-#[Install]
-#WantedBy=multi-user.target
-#EOL
-#
-#systemctl daemon-reload
-#systemctl enable mailhog
+sudo tee /etc/systemd/system/mailhog.service <<EOL
+[Unit]
+Description=Mailhog
+After=network.target
+
+[Service]
+User=$WSL_USER_NAME
+ExecStart=/usr/bin/env /usr/local/bin/mailhog > /dev/null 2>&1 &
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+systemctl daemon-reload
+systemctl disable mailhog
 
 ## Configure Supervisor
 #systemctl enable supervisor.service
@@ -563,17 +612,25 @@ sed -i "s/relayhost =/relayhost = [localhost]:1025/g" /etc/postfix/main.cf
 #rm -rf /etc/update-motd.d/50-landscape-sysinfo
 #service motd-news restart
 
+# Create folders to track features
+mkdir -p "/home/${WSL_USER_NAME}/.homestead-features"
+cat > "/home/${WSL_USER_NAME}/.homestead-features/wsl_user_name" << EOF
+$WSL_USER_NAME
+EOF
+cat > "/home/${WSL_USER_NAME}/.homestead-features/wsl_user_group" << EOF
+$WSL_USER_GROUP
+EOF
 # One last upgrade check
 apt-get upgrade -y
 
 # Clean Up
 apt -y autoremove
 apt -y clean
-chown -R $WSL_USERNAME:$WSL_USER_GROUP /home/$WSL_USERNAME
-chown -R $WSL_USERNAME:$WSL_USER_GROUP /usr/local/bin
+chown -R $WSL_USER_NAME:$WSL_USER_GROUP /home/$WSL_USER_NAME
+chown -R $WSL_USER_NAME:$WSL_USER_GROUP /usr/local/bin
 
 # Add Composer Global Bin To Path
-printf "\nPATH=\"$(sudo su - $WSL_USERNAME -c 'composer config -g home 2>/dev/null')/vendor/bin:\$PATH\"\n" | tee -a /home/$WSL_USERNAME/.profile
+printf "\nPATH=\"$(sudo su - $WSL_USER_NAME -c 'composer config -g home 2>/dev/null')/vendor/bin:\$PATH\"\n" | tee -a /home/$WSL_USER_NAME/.profile
 
 # Perform some cleanup from chef/bento packer_templates/ubuntu/scripts/cleanup.sh
 # Delete Linux source
@@ -614,7 +671,7 @@ rm -rf /usr/share/doc/linux-firmware/*
 #systemctl disable postgresql@9.6-main
 #systemctl disable postgresql@10-main
 #systemctl disable postgresql@11-main
-#systemctl disable postgresql@12-main
+systemctl disable postgresql@12-main
 
 apt-get -y autoremove;
 apt-get -y clean;
@@ -639,3 +696,8 @@ sysctl fs.protected_regular=0
 #/bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=1024
 #/sbin/mkswap /var/swap.1
 #/sbin/swapon /var/swap.1
+
+# Setup Homestead repo
+su $WSL_USER_NAME -c 'composer install'
+su $WSL_USER_NAME -c 'bash init.sh'
+
