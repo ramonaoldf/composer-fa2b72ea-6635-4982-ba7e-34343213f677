@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class WslCreateSiteCommand extends Command
+class WslApplyFeatures extends Command
 {
     use GeneratesSlugs;
 
@@ -36,6 +36,13 @@ class WslCreateSiteCommand extends Command
     protected string $defaultProjectName;
 
     /**
+     * Path to features folder.
+     *
+     * @var string
+     */
+    private string $featuresPath;
+
+    /**
      * Configure the command options.
      *
      * @return void
@@ -45,10 +52,11 @@ class WslCreateSiteCommand extends Command
         $this->basePath = getcwd();
         $this->projectName = basename($this->basePath);
         $this->defaultProjectName = $this->slug($this->projectName);
+        $this->featuresPath = getcwd().'/scripts/features';
 
         $this
-            ->setName('wsl:create-sites')
-            ->setDescription('Create Sites in WSL from Homestead configuration')
+            ->setName('wsl:apply-features')
+            ->setDescription('Configure features in WSL from Homestead configuration')
             ->addOption('json', null, InputOption::VALUE_NONE, 'Determines if the Homestead settings file will be in json format.');
     }
 
@@ -65,38 +73,26 @@ class WslCreateSiteCommand extends Command
         $format = $input->getOption('json') ? 'json' : 'yaml';
         $settings = $this->parseSettingsFromFile($format, []);
 
-        foreach ($settings['wsl_sites'] as $key => $site) {
-            $create_cmd = '';
-            $args = [
-                $site['map'],                                 // $1
-                $site['to'], // $2
-                isset($site['port']) ? $site['port'] : 80,    // $3
-                isset($site['ssl']) ? $site['ssl'] : 443,     // $4
-                isset($site['php']) ? $site['php'] : '7.4',   // $5
-            ];
-            $create_cmd = "sudo bash {$this->basePath}/scripts/site-types/laravel.sh {$args[0]} \"{$args[1]}\"";
-            $create_cmd .= " {$args[2]} {$args[3]} {$args[4]}";
+        foreach ($settings['features'] as $key => $feature) {
+            $feature_cmd = '';
+            $feature_name = array_key_first($feature);
+            $feature_variables = $feature[$feature_name];
 
-            // run command to create the site
-            $shell_output = shell_exec($create_cmd);
-            if (! is_null($shell_output)) {
-                var_dump($shell_output);
-            }
-
-            // run command to create the site's SSL certificates
-            $cert_cmd = "sudo bash {$this->basePath}/scripts/create-certificate.sh {$site['map']}";
-            $shell_output = shell_exec($cert_cmd);
-            if (! is_null($shell_output)) {
-                var_dump($shell_output);
-            }
-
-            // Restart nginx
-            $shell_output = shell_exec('sudo service nginx restart');
-            if (! is_null($shell_output)) {
-                var_dump($shell_output);
+            if ($feature_variables !== false) {
+                $feature_path = "{$this->featuresPath}/{$feature_name}.sh > ~/.homestead-features/{$feature_name}.log";
+                // Prepare the feature variables if provided.
+                if (is_array($feature_variables)) {
+                    $variables = join(' ', $feature_variables);
+                    $feature_cmd = "sudo -E bash {$feature_path} {$variables}";
+                } else {
+                    $feature_cmd = "sudo -E bash {$feature_path}";
+                }
+                shell_exec($feature_cmd);
+                $output->writeln("Command output can be found via: sudo cat ~/.homestead-features/{$feature_name}.log");
             }
         }
-        $output->writeln('WSL sites have been created!');
+
+        $output->writeln('WSL features have been configured!');
 
         return 0;
     }
