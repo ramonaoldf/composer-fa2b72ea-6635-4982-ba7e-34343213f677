@@ -22,25 +22,26 @@ apt-get remove -y --purge mysql-server mysql-client mysql-common
 apt-get autoremove -y
 apt-get autoclean
 
+rm -rf /var/lib/mysql
 rm -rf /var/log/mysql
 rm -rf /etc/mysql
 
 # Add Maria PPA
 curl -LsS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | sudo bash
 
-# Set The Automated Root Password
 debconf-set-selections <<< "mariadb-server mysql-server/data-dir select ''"
 debconf-set-selections <<< "mariadb-server mysql-server/root_password password secret"
 debconf-set-selections <<< "mariadb-server mysql-server/root_password_again password secret"
+touch /etc/mysql/debian.cnf
 
 # Install MariaDB
 apt-get install -y mariadb-server mariadb-client
 
 # Configure Maria Remote Access and ignore db dirs
 sed -i "s/bind-address            = 127.0.0.1/bind-address            = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
-
 cat > /etc/mysql/mariadb.conf.d/50-server.cnf << EOF
 [mysqld]
+bind-address = 0.0.0.0
 ignore-db-dir = lost+found
 EOF
 
