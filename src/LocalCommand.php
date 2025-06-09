@@ -4,12 +4,12 @@ namespace Laravel\Homestead;
 
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class InstallCommand extends Command
+class LocalCommand extends Command
 {
     /**
      * The base path of the Laravel installation.
@@ -26,22 +26,30 @@ class InstallCommand extends Command
     protected $projectName;
 
     /**
+     * Sluggified Project Name.
+     *
+     * @var string
+     */
+    protected $defaultName;
+
+    /**
      * Configure the command options.
      *
      * @return void
      */
     protected function configure()
     {
-        $this
-            ->setName('install')
-            ->setDescription('Install Homestead into the current project')
-            ->addOption('name', null, InputOption::VALUE_OPTIONAL, 'The name the virtual machine.')
-            ->addOption('hostname', null, InputOption::VALUE_OPTIONAL, 'The hostname the virtual machine.')
-            ->addOption('after', null, InputOption::VALUE_NONE, 'Determines if the after.sh file is created.')
-            ->addOption('aliases', null, InputOption::VALUE_NONE, 'Determines if the aliases file is created.');
-
         $this->basePath = getcwd();
         $this->projectName = basename(getcwd());
+        $this->defaultName = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $this->projectName)));
+
+        $this
+            ->setName('local')
+            ->setDescription('Install Homestead into the current project')
+            ->addOption('name', null, InputOption::VALUE_OPTIONAL, 'The name the virtual machine.', $this->defaultName)
+            ->addOption('hostname', null, InputOption::VALUE_OPTIONAL, 'The hostname the virtual machine.', $this->defaultName)
+            ->addOption('after', null, InputOption::VALUE_NONE, 'Determines if the after.sh file is created.')
+            ->addOption('aliases', null, InputOption::VALUE_NONE, 'Determines if the aliases file is created.');
     }
 
     /**
@@ -83,16 +91,16 @@ class InstallCommand extends Command
     protected function configurePaths()
     {
         $yaml = str_replace(
-            "- map: ~/Code", "- map: ".$this->basePath, $this->getHomesteadFile()
+            "- map: ~/Code", "- map: \"".$this->basePath."\"", $this->getHomesteadFile()
         );
 
         $yaml = str_replace(
-            "to: /home/vagrant/Code", "to: /home/vagrant/".$this->projectName, $yaml
+            "to: /home/vagrant/Code", "to: \"/home/vagrant/".$this->defaultName."\"", $yaml
         );
 
         // Fix path to the public folder (sites: to:)
         $yaml = str_replace(
-            $this->projectName."/Laravel", $this->projectName, $yaml
+            $this->defaultName."\"/Laravel/public", $this->defaultName."/public\"", $yaml
         );
 
         file_put_contents($this->basePath.'/Homestead.yaml', $yaml);
