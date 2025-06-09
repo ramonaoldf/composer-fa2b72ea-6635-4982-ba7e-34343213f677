@@ -9,6 +9,11 @@ class Homestead
 
     # Allow SSH Agent Forward from The Box
     config.ssh.forward_agent = true
+    
+    # Configure Verify Host Key
+    if settings.has_key?('verify_host_key')
+      config.ssh.verify_host_key = settings['verify_host_key']
+    end
 
     # Configure The Box
     config.vm.define settings['name'] ||= 'homestead-7'
@@ -211,6 +216,15 @@ class Homestead
         end
 
         type = site['type'] ||= 'laravel'
+        load_balancer = settings['load_balancer'] ||= false
+        http_port = load_balancer ? '8111' : '80'
+        https_port = load_balancer ? '8112' : '443'
+
+        if load_balancer
+            config.vm.provision 'shell' do |s|
+                s.path = script_dir + '/install-load-balancer.sh'
+            end
+        end
 
         case type
         when 'apigility'
@@ -230,8 +244,15 @@ class Homestead
             end
             params += ' )'
           end
+          if site.include? 'headers'
+            headers = '('
+            site['headers'].each do |header|
+                headers += ' [' + header['key'] + ']=' + header['value']
+            end
+            headers += ' )'
+          end
           s.path = script_dir + "/serve-#{type}.sh"
-          s.args = [site['map'], site['to'], site['port'] ||= '80', site['ssl'] ||= '443', site['php'] ||= '7.2', params ||= '', site['zray'] ||= 'false', site['exec'] ||= 'false']
+          s.args = [site['map'], site['to'], site['port'] ||= http_port, site['ssl'] ||= https_port, site['php'] ||= '7.2', params ||= '', site['zray'] ||= 'false', site['exec'] ||= 'false', headers ||= '']
 
           if site['zray'] == 'true'
             config.vm.provision 'shell' do |s|
@@ -364,6 +385,13 @@ class Homestead
       end
     end
 
+    # Install MySQL 8 If Necessary
+    if settings.has_key?('mysql8') && settings['mysql8']
+        config.vm.provision 'shell' do |s|
+            s.path = script_dir + '/install-mysql8.sh'
+        end
+    end
+
     # Install Neo4j If Necessary
     if settings.has_key?('neo4j') && settings['neo4j']
       config.vm.provision 'shell' do |s|
@@ -438,6 +466,7 @@ class Homestead
         s.path = script_dir + '/install-grafana.sh'
       end
     end
+
 
     # Install chronograf if Necessary
     if settings.has_key?('chronograf') && settings['chronograf']
