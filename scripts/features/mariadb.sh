@@ -38,9 +38,9 @@ apt-get install -y mariadb-server mariadb-client
 
 # Configure Maria Remote Access and ignore db dirs
 sed -i "s/bind-address            = 127.0.0.1/bind-address            = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
-
 cat > /etc/mysql/mariadb.conf.d/50-server.cnf << EOF
 [mysqld]
+bind-address = 0.0.0.0
 ignore-db-dir = lost+found
 EOF
 
