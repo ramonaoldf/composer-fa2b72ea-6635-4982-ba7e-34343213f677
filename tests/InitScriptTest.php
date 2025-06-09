@@ -12,7 +12,7 @@ class InitScriptTest extends TestCase
     /**
      * Copies init.sh and resources directory to the temporal directory.
      */
-    public function setUp(): void
+    public function setUp()
     {
         $projectDirectory = __DIR__.'/..';
 

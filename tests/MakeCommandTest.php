@@ -2,7 +2,6 @@
 
 namespace Tests;
 
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Laravel\Homestead\MakeCommand;
 use Laravel\Homestead\Traits\GeneratesSlugs;
 use PHPUnit\Framework\TestCase;
@@ -12,7 +11,7 @@ use Tests\Traits\GeneratesTestDirectory;
 
 class MakeCommandTest extends TestCase
 {
-    use ArraySubsetAsserts, GeneratesSlugs, GeneratesTestDirectory;
+    use GeneratesSlugs, GeneratesTestDirectory;
 
     /** @test */
     public function it_displays_a_success_message()
@@ -21,7 +20,7 @@ class MakeCommandTest extends TestCase
 
         $tester->execute([]);
 
-        $this->assertStringContainsString('Homestead Installed!', $tester->getDisplay());
+        $this->assertContains('Homestead Installed!', $tester->getDisplay());
     }
 
     /** @test */
@@ -126,7 +125,7 @@ class MakeCommandTest extends TestCase
             '--no-aliases' => true,
         ]);
 
-        $this->assertFileDoesNotExist(self::$testDirectory.DIRECTORY_SEPARATOR.'aliases');
+        $this->assertFileNotExists(self::$testDirectory.DIRECTORY_SEPARATOR.'aliases');
     }
 
     /** @test */
@@ -172,7 +171,7 @@ class MakeCommandTest extends TestCase
             '--no-after' => true,
         ]);
 
-        $this->assertFileDoesNotExist(self::$testDirectory.DIRECTORY_SEPARATOR.'after.sh');
+        $this->assertFileNotExists(self::$testDirectory.DIRECTORY_SEPARATOR.'after.sh');
     }
 
     /** @test */
@@ -312,7 +311,7 @@ class MakeCommandTest extends TestCase
 
         $this->assertFileExists(self::$testDirectory.DIRECTORY_SEPARATOR.'Homestead.yaml');
 
-        $this->assertStringContainsString(
+        $this->assertContains(
             "message: 'Already existing Homestead.yaml.example'",
             file_get_contents(self::$testDirectory.DIRECTORY_SEPARATOR.'Homestead.yaml')
         );
@@ -354,7 +353,7 @@ class MakeCommandTest extends TestCase
 
         $this->assertFileExists(self::$testDirectory.DIRECTORY_SEPARATOR.'Homestead.json');
 
-        $this->assertStringContainsString(
+        $this->assertContains(
             '"message": "Already existing Homestead.json.example"',
             file_get_contents(self::$testDirectory.DIRECTORY_SEPARATOR.'Homestead.json')
         );
@@ -397,7 +396,7 @@ class MakeCommandTest extends TestCase
 
         $settings = Yaml::parse(file_get_contents(self::$testDirectory.DIRECTORY_SEPARATOR.'Homestead.yaml'));
 
-        self::assertArraySubset([
+        $this->assertArraySubset([
             'name' => 'test_name',
             'hostname' => 'test_hostname',
             'ip' => '127.0.0.1',
@@ -420,7 +419,7 @@ class MakeCommandTest extends TestCase
 
         $settings = json_decode(file_get_contents(self::$testDirectory.DIRECTORY_SEPARATOR.'Homestead.json'), true);
 
-        self::assertArraySubset([
+        $this->assertArraySubset([
             'name' => 'test_name',
             'hostname' => 'test_hostname',
             'ip' => '127.0.0.1',
@@ -485,7 +484,7 @@ class MakeCommandTest extends TestCase
         //
         // The curious thing is that both directories point to the same location.
         //
-        $this->assertMatchesRegularExpression("/{$projectDirectory}/", $settings['folders'][0]['map']);
+        $this->assertRegExp("/{$projectDirectory}/", $settings['folders'][0]['map']);
         $this->assertEquals('/home/vagrant/code', $settings['folders'][0]['to']);
         $this->assertEquals($projectName, $settings['name']);
         $this->assertEquals($projectName, $settings['hostname']);
@@ -515,7 +514,7 @@ class MakeCommandTest extends TestCase
         //
         // The curious thing is that both directories point to the same location.
         //
-        $this->assertMatchesRegularExpression("/{$projectDirectory}/", $settings['folders'][0]['map']);
+        $this->assertRegExp("/{$projectDirectory}/", $settings['folders'][0]['map']);
         $this->assertEquals('/home/vagrant/code', $settings['folders'][0]['to']);
         $this->assertEquals($projectName, $settings['name']);
         $this->assertEquals($projectName, $settings['hostname']);
@@ -536,6 +535,6 @@ class MakeCommandTest extends TestCase
 
         $tester->execute([]);
 
-        $this->assertStringContainsString('WARNING! You have Homestead.yaml AND Homestead.json configuration files', $tester->getDisplay());
+        $this->assertContains('WARNING! You have Homestead.yaml AND Homestead.json configuration files', $tester->getDisplay());
     }
 }
