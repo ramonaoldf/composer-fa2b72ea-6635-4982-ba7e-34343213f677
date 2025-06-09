@@ -2,9 +2,9 @@
 
 <p align="center">
 <a href="https://travis-ci.org/laravel/homestead"><img src="https://travis-ci.org/laravel/homestead.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/homestead"><img src="https://img.shields.io/packagist/dt/laravel/homestead" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/homestead"><img src="https://img.shields.io/packagist/v/laravel/homestead" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/homestead"><img src="https://img.shields.io/packagist/l/laravel/homestead" alt="License"></a>
+<a href="https://packagist.org/packages/laravel/homestead"><img src="https://poser.pugx.org/laravel/homestead/d/total.svg" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/homestead"><img src="https://poser.pugx.org/laravel/homestead/v/stable.svg" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/homestead"><img src="https://poser.pugx.org/laravel/homestead/license.svg" alt="License"></a>
 </p>
 
 ## Introduction
@@ -20,8 +20,8 @@ Ubuntu 18.04 can be found in the branch `master`
 
 | Ubuntu LTS | Settler Version | Homestead Version | Branch
 | -----------| -----------     | -----------       | -----------
-| 18.04      | 9.x             | 10.x              | `master`
-| 20.04      | 10.x            | 11.x              | `20.04`
+| 18.04      | 10.x            | 11.x              | `master`
+| 20.04      | 9.x             | 10.x              | `20.04`
 
 ## Developing Homestead
 
