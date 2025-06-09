@@ -2,6 +2,7 @@
 
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -15,7 +16,8 @@ class UpCommand extends Command {
 	protected function configure()
 	{
 		$this->setName('up')
-                  ->setDescription('Start the Homestead machine');
+                  ->setDescription('Start the Homestead machine')
+				  ->addOption('provision', null, InputOption::VALUE_NONE, 'Run the provisioners on the box.');
 	}
 
 	/**
@@ -27,7 +29,12 @@ class UpCommand extends Command {
 	 */
 	public function execute(InputInterface $input, OutputInterface $output)
 	{
-		$process = new Process('vagrant up', realpath(__DIR__.'/../'), null, null, null);
+		$command = 'vagrant up';
+
+		if ($input->getOption('provision'))
+			$command .= ' --provision';
+
+		$process = new Process($command, realpath(__DIR__.'/../'), null, null, null);
 
 		$process->run(function($type, $line) use ($output)
 		{
