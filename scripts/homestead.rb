@@ -261,7 +261,11 @@ class Homestead
       # socket = { 'map' => 'socket-wrench.test', 'to' => '/var/www/socket-wrench/public' }
       # settings['sites'].unshift(socket)
 
+      domains = []
+
       settings['sites'].each do |site|
+
+        domains.push(site['map'])
 
         # Create SSL certificate
         config.vm.provision 'shell' do |s|
@@ -390,6 +394,12 @@ class Homestead
             s.args = [site['map'].tr('^A-Za-z0-9', '')]
           end
         end
+      end
+
+      config.vm.provision 'shell' do |s|
+        s.name = 'Configure Avahi Service'
+        s.path = script_dir + '/configure-avahi.sh'
+        s.args = domains.join(",")
       end
     end
 
