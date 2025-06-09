@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-declare -A params=$5     # Create an associative array
+declare -A params=$6     # Create an associative array
 paramsTXT=""
-if [ -n "$5" ]; then
+if [ -n "$6" ]; then
     for element in "${!params[@]}"
     do
         paramsTXT="${paramsTXT}
@@ -161,6 +161,10 @@ ln -fs "/etc/apache2/sites-available/$1-ssl.conf" "/etc/apache2/sites-enabled/$1
 a2dissite 000-default
 
 ps auxw | grep apache2 | grep -v grep > /dev/null
+
+# Assume user wants mode_rewrite support
+sudo a2enmod rewrite
+service apache2 restart
 
 if [ $? == 0 ]
 then
