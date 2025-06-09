@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-homesteadRoot=~/.homestead
+if [[ -n "$1" ]]; then
+    cp -i src/stubs/Homestead.json Homestead.json
+else
+    cp -i src/stubs/Homestead.yaml Homestead.yaml
+fi
 
-mkdir -p "$homesteadRoot"
-
-cp -i src/stubs/Homestead.yaml "$homesteadRoot/Homestead.yaml"
-cp -i src/stubs/after.sh "$homesteadRoot/after.sh"
-cp -i src/stubs/aliases "$homesteadRoot/aliases"
+cp -i src/stubs/after.sh after.sh
+cp -i src/stubs/aliases aliases
 
 echo "Homestead initialized!"

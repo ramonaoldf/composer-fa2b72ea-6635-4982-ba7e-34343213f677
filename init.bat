@@ -1,12 +1,13 @@
 @echo off
 
-set homesteadRoot=%HOMEDRIVE%%HOMEPATH%\.homestead
+if ["%~1"]==["json"] (
+    copy /-y src\stubs\Homestead.json Homestead.json
+)
+if ["%~1"]==[""] (
+    copy /-y src\stubs\Homestead.yaml Homestead.yaml
+)
 
-mkdir "%homesteadRoot%"
+copy /-y src\stubs\after.sh after.sh
+copy /-y src\stubs\aliases aliases
 
-copy /-y src\stubs\Homestead.yaml "%homesteadRoot%\Homestead.yaml"
-copy /-y src\stubs\after.sh "%homesteadRoot%\after.sh"
-copy /-y src\stubs\aliases "%homesteadRoot%\aliases"
-
-set homesteadRoot=
 echo Homestead initialized!
