@@ -40,8 +40,8 @@ class MakeCommand extends Command
     protected function configure()
     {
         $this->basePath = getcwd();
-        $this->projectName = basename(getcwd());
-        $this->defaultName = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $this->projectName)));
+        $this->projectName = basename($this->basePath);
+        $this->defaultName = $this->slugify($this->projectName);
 
         $this
             ->setName('make')
@@ -96,6 +96,17 @@ class MakeCommand extends Command
     }
 
     /**
+     * Slugifies the Project Name.
+     *
+     * @param  string $projectName
+     * @return string
+     */
+    protected function slugify($projectName)
+    {
+        return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $projectName)));
+    }
+
+    /**
      * Determine if the Vagrantfile exists.
      *
      * @return bool
@@ -112,7 +123,7 @@ class MakeCommand extends Command
      */
     protected function createVagrantfile()
     {
-        copy(__DIR__.'/stubs/LocalizedVagrantfile', "{$this->basePath}/Vagrantfile");
+        copy(__DIR__.'/../resources/LocalizedVagrantfile', "{$this->basePath}/Vagrantfile");
     }
 
     /**
@@ -132,7 +143,7 @@ class MakeCommand extends Command
      */
     protected function createAliasesFile()
     {
-        copy(__DIR__.'/stubs/aliases', "{$this->basePath}/aliases");
+        copy(__DIR__.'/../resources/aliases', "{$this->basePath}/aliases");
     }
 
     /**
@@ -152,7 +163,7 @@ class MakeCommand extends Command
      */
     protected function createAfterShellScript()
     {
-        copy(__DIR__.'/stubs/after.sh', "{$this->basePath}/after.sh");
+        copy(__DIR__.'/../resources/after.sh', "{$this->basePath}/after.sh");
     }
 
     /**
@@ -179,14 +190,17 @@ class MakeCommand extends Command
 
         $filename = $this->exampleSettingsExists($format) ?
             "{$this->basePath}/Homestead.{$format}.example" :
-            __DIR__."/stubs/Homestead.{$format}";
+            __DIR__."/../resources/Homestead.{$format}";
 
         $settings = $SettingsClass::fromFile($filename);
 
-        $settings->updateName($options['name'])
-                 ->updateHostname($options['hostname'])
-                 ->updateIpAddress($options['ip'])
-                 ->configureSites($this->projectName)
+        if (! $this->exampleSettingsExists($format)) {
+            $settings->updateName($options['name'])
+                     ->updateHostname($options['hostname']);
+        }
+
+        $settings->updateIpAddress($options['ip'])
+                 ->configureSites($this->projectName, $this->defaultName)
                  ->configureSharedFolders($this->basePath, $this->defaultName)
                  ->save("{$this->basePath}/Homestead.{$format}");
     }
