@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+$_ENV['VAGRANT_DOTFILE_PATH'] = '~/.homestead/.vagrant';
+
 if (file_exists(__DIR__.'/vendor/autoload.php'))
 {
 	require __DIR__.'/vendor/autoload.php';
@@ -22,7 +24,7 @@ function homestead_path()
 	}
 }
 
-$app = new Symfony\Component\Console\Application('Laravel Homestead', '2.0.7');
+$app = new Symfony\Component\Console\Application('Laravel Homestead', '2.0.8');
 
 $app->add(new Laravel\Homestead\DestroyCommand);
 $app->add(new Laravel\Homestead\EditCommand);
